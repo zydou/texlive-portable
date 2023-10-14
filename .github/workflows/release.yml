@@ -37,11 +37,11 @@ jobs:
 
       - uses: actions/checkout@main
 
-      - name: Install texlive-${{ inputs.year }}-${{ matrix.scheme }}
+      - name: release texlive-${{ inputs.year }}-${{ matrix.scheme }}
         env:
           YEAR: ${{ inputs.year }}
           SCHEME: ${{ matrix.scheme }}
-        run: bash install.sh
+        run: bash release.sh
 
       - name: Release tar.gz
         env:
