@@ -74,8 +74,8 @@ main() {
     download_texlive
 
     #　replace placeholder
-    [ -f "${DEST}/tlpkg/texlive.profile" ] && perl -i -pe"s#TEXDIR_DEST#${DEST}#g" "${DEST}/tlpkg/texlive.profile"
-    [ -f "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf" ] && perl -i -pe"s#TEXDIR_DEST#${DEST}#g" "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf"
+    [ -f "${DEST}/tlpkg/texlive.profile" ] && perl -i -pe"s#TEXDIR_ROOT#${DEST}#g" "${DEST}/tlpkg/texlive.profile"
+    [ -f "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf" ] && perl -i -pe"s#TEXDIR_ROOT#${DEST}#g" "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf"
 
     # Run post installation code
     if [ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
