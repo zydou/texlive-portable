@@ -2,8 +2,8 @@
 
 YEAR="${YEAR:-2022}"
 SCHEME="${SCHEME:-full}"
-ROOT="${HOME}/.local/texlive-src"
-DEST="${HOME}/.local/texlive"
+ROOT="${HOME}/.local/texlive-${YEAR}-src"
+DEST="${HOME}/.local/texlive-${YEAR}-${SCHEME}"
 # Download texlive src
 mkdir -p "${ROOT}"
 
@@ -87,28 +87,4 @@ find texmf-var/web2c -type f -name "*.log" -exec /bin/rm -v {} \;
 [[ -f "texmf-var/tex/generic/config/language.dat" ]] && perl -i -pe"s#${ROOT}#TEXDIR_ROOT#g" texmf-var/tex/generic/config/language.dat
 [[ -f "texmf-var/tex/generic/config/language.dat.lua" ]] && perl -i -pe"s#${ROOT}#TEXDIR_ROOT#g" texmf-var/tex/generic/config/language.dat.lua
 
-
-# Download ripgrep
-if [[ ! -x "${HOME}/.local/bin/rg" ]]; then
-
-    if [[ "$(uname -s)" == "Linux" && "$(uname -m)" == "x86_64" ]]; then
-        VARIANT="x86_64-unknown-linux-musl"
-    elif [[ "$(uname -s)" == "Linux" && "$(uname -m)" == "aarch64" ]]; then
-        VARIANT="aarch64-unknown-linux-gnu"
-    elif [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "x86_64" ]]; then
-        VARIANT="x86_64-apple-darwin"
-    elif [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
-        VARIANT="aarch64-apple-darwin"
-    else
-        echo "Unsupported ripgrep for: $(uname -s) $(uname -m)"
-        exit 1
-    fi
-    echo -e "\033[1;92mDownloading ripgrep from https://github.com/zydou/ripgrep/releases/download/13.0.0/ripgrep-13.0.0-${VARIANT}.tar.gz\033[0m"
-    mkdir -p "${HOME}/.local/bin"
-    curl -qLf -o "${HOME}/.local/bin/rg.tar.gz" "https://github.com/zydou/ripgrep/releases/download/13.0.0/ripgrep-13.0.0-${VARIANT}.tar.gz"
-    tar -xzf "${HOME}/.local/bin/rg.tar.gz" -C "${HOME}/.local/bin"
-    /bin/rm -f "${HOME}/.local/bin/rg.tar.gz"
-fi
-"${HOME}/.local/bin/rg" -uu -l -0 "${DEST}" texmf-var | xargs -0 /bin/rm -f -v
-/bin/rm -rf "${ROOT}"
 echo -e "\033[1;92mtexlive-${YEAR}-${SCHEME} Done!\033[0m"

@@ -22,8 +22,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         scheme: [small, medium, large, full]
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - darwin-arm64  # my own MacBook M2
     name: texlive-${{ inputs.year }}-${{ matrix.scheme }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     steps:
@@ -31,9 +34,13 @@ jobs:
         run: |
           df -h
           if [[ "$(uname -s)" == "Linux" ]]; then
-          sudo docker image prune --all --force
-          fi
+          sudo rm -rf /usr/share/dotnet  # Remove .Net
+          sudo rm -rf /usr/local/lib/android  # Remove Android
+          sudo rm -rf /opt/ghc  # Remove Haskell
+          sudo rm -rf /opt/hostedtoolcache/CodeQL  # Remove CodeQL
+          sudo docker system prune --all --force  # Remove docker images
           df -h
+          fi
 
       - uses: actions/checkout@main
 
@@ -43,18 +50,33 @@ jobs:
           SCHEME: ${{ matrix.scheme }}
         run: bash release.sh
 
+      - name: ripgrep
+        run: |
+          if ! command -v rg > /dev/null; then
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          fi
+          brew install ripgrep
+          fi
+          cd "${HOME}/.local/texlive-${{ inputs.year }}-${{ matrix.scheme }}" || exit 1
+          rg -uu -l -0 "${HOME}/.local/texlive-${{ inputs.year }}-${{ matrix.scheme }}" texmf-var | xargs -0 /bin/rm -f -v
+
       - name: Release tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # create release if not exist
           gh release create "texlive-${{inputs.year}}" --notes "Release texlive-${{inputs.year}}" --title "texlive-${{inputs.year}}" --repo "${GITHUB_REPOSITORY}" || true
-          cd "${HOME}/.local/texlive"
+          cd "${HOME}/.local/texlive-${{ inputs.year }}-${{ matrix.scheme }}"
           tar -czf "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" ./*
+          shasum -a 256 "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" > "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz.sha256sum"
           # delete the asset if exists
           gh release delete-asset "texlive-${{inputs.year}}" "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" --yes --repo "${GITHUB_REPOSITORY}" || true
+          gh release delete-asset "texlive-${{inputs.year}}" "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz.sha256sum" --yes --repo "${GITHUB_REPOSITORY}" || true
           gh release upload "texlive-${{inputs.year}}" "./portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" --repo "${GITHUB_REPOSITORY}"
+          gh release upload "texlive-${{inputs.year}}" "./portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz.sha256sum" --repo "${GITHUB_REPOSITORY}"
           /bin/rm -f "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz"
+          /bin/rm -f "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz.sha256sum"
 
       - name: Release tar.xz
         env:
@@ -62,9 +84,13 @@ jobs:
         run: |
           # create release if not exist
           gh release create "texlive-${{inputs.year}}" --notes "Release texlive-${{inputs.year}}" --title "texlive-${{inputs.year}}" --repo "${GITHUB_REPOSITORY}" || true
-          cd "${HOME}/.local/texlive"
+          cd "${HOME}/.local/texlive-${{ inputs.year }}-${{ matrix.scheme }}"
           tar -cJf "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" ./*
+          shasum -a 256 "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" > "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz.sha256sum"
           # delete the asset if exists
           gh release delete-asset "texlive-${{inputs.year}}" "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" --yes --repo "${GITHUB_REPOSITORY}" || true
+          gh release delete-asset "texlive-${{inputs.year}}" "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz.sha256sum" --yes --repo "${GITHUB_REPOSITORY}" || true
           gh release upload "texlive-${{inputs.year}}" "./portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" --repo "${GITHUB_REPOSITORY}"
+          gh release upload "texlive-${{inputs.year}}" "./portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz.sha256sum" --repo "${GITHUB_REPOSITORY}"
           /bin/rm -f "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz"
+          /bin/rm -f "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz.sha256sum"
