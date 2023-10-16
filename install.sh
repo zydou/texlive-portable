@@ -2,8 +2,8 @@
 set -e
 
 YEAR="${YEAR:-2022}"
-SCHEME="${SCHEME:-basic}"
-DEST="${DEST:-${HOME}/.local/texlive}"
+SCHEME="${SCHEME:-full}"
+ROOT="${ROOT:-${HOME}/.local/texlive}"
 
 usage() {
     this="${1}"
@@ -11,9 +11,9 @@ usage() {
 ${this}: install portable texlive
 
 Usage: ${this} [-t texlive_year] [-s scheme]
-  -t texlive year, default is ${YEAR}.
-  -s texlive scheme, default is ${SCHEME}.
-  -d installation directory, default is ${DEST}.
+  -t texlive year, default is ${YEAR}
+  -s texlive scheme, default is ${SCHEME}
+  -d installation directory, default is ${ROOT}
 EOF
     exit 2
 }
@@ -44,7 +44,7 @@ parse_args() {
     while getopts "s:d:h?t:" arg; do
         case "${arg}" in
         s) SCHEME="${OPTARG}" ;;
-        d) DEST="${OPTARG}" ;;
+        d) ROOT="${OPTARG}" ;;
         h | \?) usage "${0}" ;;
         t) YEAR="${OPTARG}" ;;
         *) return 1 ;;
@@ -55,7 +55,7 @@ parse_args() {
 main() {
     parse_args "${@}"
     shift "$((OPTIND - 1))"
-
+    DEST="${ROOT}/${YEAR}"
     if [ -d "${DEST}" ]; then
         echo "Found texlive at ${DEST}, please remove it first."
         exit 1
@@ -74,8 +74,8 @@ main() {
     download_texlive
 
     #　replace placeholder
-    [ -f "${DEST}/tlpkg/texlive.profile" ] && perl -i -pe"s#TEXDIR_ROOT#${DEST}#g" "${DEST}/tlpkg/texlive.profile"
-    [ -f "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf" ] && perl -i -pe"s#TEXDIR_ROOT#${DEST}#g" "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf"
+    [ -f "${DEST}/tlpkg/texlive.profile" ] && perl -i -pe"s#TEXDIR_DEST#${DEST}#g" "${DEST}/tlpkg/texlive.profile"
+    [ -f "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf" ] && perl -i -pe"s#TEXDIR_DEST#${DEST}#g" "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf"
 
     # Run post installation code
     if [ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
@@ -101,6 +101,9 @@ main() {
     echo "Deleting log files ..."
     find "${DEST}/texmf-var/web2c" -type f -name "*.log" -exec /bin/rm -v {} \;
 
+    echo "Symlink ${DEST} -> ${ROOT}/current"
+    [ -e "${ROOT}/current" ] && /bin/rm -f "${ROOT}/current"
+    ln -sf "${DEST}" "${ROOT}/current"
     echo "texlive-${YEAR}-${SCHEME} Done!"
 }
 
