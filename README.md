@@ -10,7 +10,7 @@ This will install a recent version of texlive at `$HOME/.local/texlive/YYYY`, wh
 
 ## Advanced Installation
 
-If you want to install texlive at a different texlive version, a different texlive scheme, or install at a different directory, you can use the following command:
+If you want to install a different texlive version, a different texlive scheme, or at a different directory, you can use the following command:
 
 ```bash
 bash -c "$(curl -fsLS https://github.com/zydou/texlive-portable/raw/main/install.sh)" -- -t 2022 -s full -d "$HOME/.local/texlive"
