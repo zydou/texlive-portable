@@ -28,16 +28,20 @@ download_texlive() {
     fi
     mkdir -p "${DEST}"
     echo "Downloading from ${PROXY_URL}https://github.com/zydou/texlive-portable/releases/download/texlive-${YEAR}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX} ..."
-    echo "To ${DEST}/texlive-${YEAR}.${SUFFIX}"
-    curl -Lfk -o "${DEST}/texlive-${YEAR}.${SUFFIX}" "${PROXY_URL}https://github.com/zydou/texlive-portable/releases/download/texlive-${YEAR}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}"
+    echo "To ${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}"
+    curl -Lfk -o "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" "${PROXY_URL}https://github.com/zydou/texlive-portable/releases/download/texlive-${YEAR}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}"
+    curl -Lfk -o "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}.sha256sum" "${PROXY_URL}https://github.com/zydou/texlive-portable/releases/download/texlive-${YEAR}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}.sha256sum"
+    cd "${DEST}" || exit
+    shasum -a 256 -c "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}.sha256sum"
 
-    echo "Extracting ${DEST}/texlive-${YEAR}.${SUFFIX} ..."
+    echo "Extracting ${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX} ..."
     if [ "${SUFFIX}" = "tar.xz" ]; then
-        tar -xJf "${DEST}/texlive-${YEAR}.${SUFFIX}" -C "${DEST}" --strip-components=1
+        tar -xJf "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" -C "${DEST}" --strip-components=1
     elif [ "${SUFFIX}" = "tar.gz" ]; then
-        tar -xzf "${DEST}/texlive-${YEAR}.${SUFFIX}" -C "${DEST}" --strip-components=1
+        tar -xzf "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" -C "${DEST}" --strip-components=1
     fi
-    /bin/rm -f "${DEST}/texlive-${YEAR}.${SUFFIX}"
+    /bin/rm -f "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}"
+    /bin/rm -f "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}.sha256sum"
 }
 
 parse_args() {
