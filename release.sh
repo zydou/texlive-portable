@@ -34,6 +34,23 @@ if [[ "${SCHEME}" = "large" ]]; then
     SCHEME="tetex"
 fi
 
+# Detect PLATFORM
+if [[ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "linux" && "$(uname -m)" = "x86_64" ]]; then
+    PLATFORM="x86_64-linux"
+elif [[ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "linux" && "$(uname -m)" = "aarch64" ]]; then
+    PLATFORM="aarch64-linux"
+elif [[ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "darwin" ]]; then
+    # on macOS, texlive 2018 and 2019 only has x86_64 arch.
+    if [[ "${YEAR}" = "2018" || "${YEAR}" = "2019" ]]; then
+        PLATFORM="x86_64-darwin"
+    else
+        PLATFORM="universal-darwin"
+    fi
+else
+    echo "Unsupported platform: $(uname -s) $(uname -m)"
+    exit 1
+fi
+
 /bin/cat <<EOF > "${ROOT}/texlive.profile"
 selected_scheme scheme-$SCHEME
 TEXDIR $DEST
@@ -43,6 +60,7 @@ TEXMFSYSCONFIG $DEST/texmf-config
 TEXMFHOME \$TEXMFLOCAL
 TEXMFVAR \$TEXMFSYSVAR
 TEXMFCONFIG \$TEXMFSYSCONFIG
+binary_$PLATFORM 1
 instopt_adjustpath 0
 instopt_adjustrepo 0
 instopt_letter 0
@@ -67,7 +85,7 @@ if [[ ! -d "${DEST}" ]]; then
     TEXLIVE_INSTALL_NO_CONTEXT_CACHE=1 \
     TEXLIVE_INSTALL_NO_DISKCHECK=1 \
     TEXLIVE_INSTALL_NO_RESUME=1 \
-    "${ROOT}/install-tl" --profile "${ROOT}"/texlive.profile --repository "${ROOT}" -logfile "${ROOT}"/install-tl.log -no-verify-downloads
+    perl "${ROOT}/install-tl" --profile "${ROOT}"/texlive.profile --repository "${ROOT}" -logfile "${ROOT}"/install-tl.log -no-verify-downloads -no-gui
     echo -e "\033[1;92mFinished texlive-${YEAR} installation\033[0m"
 fi
 
