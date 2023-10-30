@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 YEAR="${YEAR:-2022}"
@@ -19,7 +19,7 @@ EOF
 }
 
 download_texlive() {
-    COUNTRY="$(curl -sSLkq4 --max-time 2 --proxy '' https://ipinfo.io/country)"
+    COUNTRY="$(curl -sSLk4 --max-time 2 https://ipinfo.io/country)"
     if [ "${COUNTRY}" = "CN" ]; then
         echo "Use GitHub proxy to download texlive."
         PROXY_URL="https://ghproxy.com/"
@@ -78,16 +78,22 @@ main() {
     [ -f "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf" ] && perl -i -pe"s#TEXDIR_ROOT#${DEST}#g" "${DEST}/texmf-var/fonts/conf/texlive-fontconfig.conf"
 
     # Run post installation code
-    if [ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "darwin" ]; then
-        PLATFORM="universal-darwin"
-    elif [ "$(uname -m)" = "x86_64" ]; then
+    if [[ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "linux" && "$(uname -m)" = "x86_64" ]]; then
         PLATFORM="x86_64-linux"
-    elif [ "$(uname -m)" = "aarch64" ]; then
+    elif [[ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "linux" && "$(uname -m)" = "aarch64" ]]; then
         PLATFORM="aarch64-linux"
+    elif [[ "$(uname -s | tr '[:upper:]' '[:lower:]')" = "darwin" ]]; then
+        # on macOS, texlive 2018 and 2019 only has x86_64 arch.
+        if [[ "${YEAR}" = "2018" || "${YEAR}" = "2019" ]]; then
+            PLATFORM="x86_64-darwin"
+        else
+            PLATFORM="universal-darwin"
+        fi
     else
         echo "Unsupported platform: $(uname -s) $(uname -m)"
         exit 1
     fi
+
 
     echo "Running ${DEST}/bin/${PLATFORM}/fmtutil-sys --no-error-if-no-engine=luajithbtex,luajittex,mfluajit --no-strict --all"
     "${DEST}/bin/${PLATFORM}/fmtutil-sys" --no-error-if-no-engine=luajithbtex,luajittex,mfluajit --no-strict --all > /dev/null 2>&1 || true
