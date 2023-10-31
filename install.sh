@@ -36,9 +36,9 @@ download_texlive() {
 
     echo "Extracting ${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX} ..."
     if [ "${SUFFIX}" = "tar.xz" ]; then
-        tar -xJf "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" -C "${DEST}" --strip-components=1
+        tar --no-xattrs -xJf "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" -C "${DEST}" --strip-components=1
     elif [ "${SUFFIX}" = "tar.gz" ]; then
-        tar -xzf "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" -C "${DEST}" --strip-components=1
+        tar --no-xattrs -xzf "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}" -C "${DEST}" --strip-components=1
     fi
     /bin/rm -f "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}"
     /bin/rm -f "${DEST}/portable-texlive-${YEAR}-${SCHEME}-$(uname -s)-$(uname -m).${SUFFIX}.sha256sum"

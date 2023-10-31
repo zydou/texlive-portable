@@ -1,6 +1,7 @@
 ---
 name: texlive
 run-name: texlive-${{ inputs.year }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -68,7 +69,7 @@ jobs:
           # create release if not exist
           gh release create "texlive-${{inputs.year}}" --notes-file README.md --title "texlive-${{inputs.year}}" --repo "${GITHUB_REPOSITORY}" || true
           cd "${HOME}/.local/texlive-${{ inputs.year }}-${{ matrix.scheme }}"
-          tar -czf "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" ./*
+          tar --no-xattrs -czf "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" ./*
           shasum -a 256 "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" > "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz.sha256sum"
           # delete the asset if exists
           gh release delete-asset "texlive-${{inputs.year}}" "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.gz" --yes --repo "${GITHUB_REPOSITORY}" || true
@@ -81,11 +82,11 @@ jobs:
       - name: Release tar.xz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
+        run: |-
           # create release if not exist
           gh release create "texlive-${{inputs.year}}" --notes-file README.md --title "texlive-${{inputs.year}}" --repo "${GITHUB_REPOSITORY}" || true
           cd "${HOME}/.local/texlive-${{ inputs.year }}-${{ matrix.scheme }}"
-          tar -cJf "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" ./*
+          tar --no-xattrs -cJf "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" ./*
           shasum -a 256 "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" > "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz.sha256sum"
           # delete the asset if exists
           gh release delete-asset "texlive-${{inputs.year}}" "portable-texlive-${{inputs.year}}-${{matrix.scheme}}-$(uname -s)-$(uname -m).tar.xz" --yes --repo "${GITHUB_REPOSITORY}" || true
